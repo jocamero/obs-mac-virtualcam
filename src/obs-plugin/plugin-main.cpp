@@ -25,6 +25,8 @@ static void *virtualcam_output_create(obs_data_t *settings, obs_output_t *output
     blog(LOG_DEBUG, "VIRTUALCAM output_create");
 }
 
+pthread_t main_thread;
+
 static void virtualcam_output_destroy(void *data)
 {
     blog(LOG_DEBUG, "VIRTUALCAM output_destroy");
@@ -36,8 +38,7 @@ extern void *virtualCamMain(void *ptr);
 static bool virtualcam_output_start(void *data)
 {
     blog(LOG_DEBUG, "VIRTUALCAM output_start");
-    pthread_t thread1;
-    pthread_create(&thread1, NULL, virtualCamMain, (void *)"Thread 1");
+    pthread_create(&main_thread, NULL, virtualCamMain, (void *)"Thread 1");
 
     // TODO(johnboiles): Right now we're hardcoded for 720x480 but that should probably change
     struct video_scale_info conversion = {};
@@ -56,6 +57,9 @@ static void virtualcam_output_stop(void *data, uint64_t ts)
 {
     blog(LOG_DEBUG, "VIRTUALCAM output_stop");
     obs_output_end_data_capture(output);
+    pthread_kill(main_thread, SIGUSR1);
+    pthread_join(main_thread, NULL);
+    blog(LOG_DEBUG, "VIRTUALCAM thread destroyed");
 }
 
 // TODO(johnboiles): Janky to extern this. Make classes and stuff.

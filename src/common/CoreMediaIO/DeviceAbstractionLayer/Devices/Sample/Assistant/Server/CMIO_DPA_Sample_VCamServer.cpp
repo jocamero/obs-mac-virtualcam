@@ -13,6 +13,8 @@
 
 // System Includes
 #include <servers/bootstrap.h>
+#include <pthread.h>
+
 
 CMIO::DPA::Sample::Server::Device *virtualCamDevice;
 
@@ -51,9 +53,15 @@ using namespace CMIO::DPA::Sample::Server;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // main()
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+static void handler(int signum)
+{
+    pthread_exit(NULL);
+}
+
 void *virtualCamMain(void *)
 {
     DebugMessage("starting up");
+    signal(SIGUSR1, handler);
 
     // Don't allow any exceptions to escape
 	try
